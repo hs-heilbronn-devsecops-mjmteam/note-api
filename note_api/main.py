@@ -62,3 +62,54 @@ def create_note(request: CreateNoteRequest,
     note_id = str(uuid4())
     backend.set(note_id, request)
     return note_id
+########################################################
+#For Exercise 4:
+# Configuration of the trace provider
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+
+from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
+import os
+
+#Setze die Umgebungsvariable für den Google Cloud-Dienstkontoschlüssel
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "path/to/google-cloud-key.json" #TODO
+
+#Konfiguriere den TracerProvider und Exporter
+tracer_provider = TracerProvider()
+#cloud_trace_exporter = CloudTraceSpanExporter()
+
+# OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
+otlp_exporter = OTLPSpanExporter()#endpoint="https://otel.googleapis.com:443", insecure=False)
+span_processor = BatchSpanProcessor(otlp_exporter)
+tracer_provider.add_span_processor(span_processor)
+
+#Füge den BatchSpanProcessor hinzu
+#span_processor = BatchSpanProcessor(cloud_trace_exporter)
+#tracer_provider.add_span_processor(span_processor)
+
+# Setze den Tracer Provider global
+trace.set_tracer_provider(tracer_provider)
+
+# Erstelle einen Tracer mit einem spezifischen Namen
+tracer = trace.get_tracer("my-application")
+
+#Instrumentiere die FastAPI-Anwendung
+FastAPIInstrumentor.instrument_app(app)
+
+#Beispiel-Routen hinzufügen
+@app.get("/trace")
+async def trace_example():
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("example-span"):
+        return {"message": "This request is traced!"}
+    
+@app.get("/echo")
+def echo()->str:
+    return(os.environ['GOOGLE_APPLICATION_CREDENTIALS'])
+#######################################################

@@ -70,10 +70,10 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 
 from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
-from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
 
 import os
 
@@ -85,7 +85,8 @@ tracer_provider = TracerProvider()
 #cloud_trace_exporter = CloudTraceSpanExporter()
 
 # OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
-otlp_exporter = OTLPSpanExporter()#endpoint="https://otel.googleapis.com:443", insecure=False)
+# Authentifizierung erfolgt automatisch in Cloud Run
+otlp_exporter = OTLPSpanExporter()#endpoint="https://otel.googleapis.com:443")  
 span_processor = BatchSpanProcessor(otlp_exporter)
 tracer_provider.add_span_processor(span_processor)
 

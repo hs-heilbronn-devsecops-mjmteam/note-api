@@ -5,7 +5,7 @@ import pytest
 
 
 def test_save_and_get_item():
-    pytest.skip("skip for debugging")
+    #pytest.skip("skip for debugging")
     backend = MemoryBackend()
     id = create_note(CreateNoteRequest(
         title='Test Note',
@@ -15,7 +15,7 @@ def test_save_and_get_item():
 
 
 def test_save_and_get_items():
-    pytest.skip("skip for debugging")
+    #pytest.skip("skip for debugging")
     backend = MemoryBackend()
     create_note(CreateNoteRequest(
         title='Test Note',

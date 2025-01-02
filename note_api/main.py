@@ -67,7 +67,7 @@ def create_note(request: CreateNoteRequest,
     backend.set(note_id, request)
     return note_id
 
-pytest.skip("Skip because we are not in google cloud run")
+#pytest.skip("Skip because we are not in google cloud run")
 ########################################################
 #For Exercise 4:
 # Configuration of the trace provider
@@ -83,15 +83,15 @@ from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 tracer_provider = TracerProvider()
 
 
-cloud_trace_exporter = CloudTraceSpanExporter()
-span_processor = BatchSpanProcessor(cloud_trace_exporter)
-tracer_provider.add_span_processor(span_processor)
+#cloud_trace_exporter = CloudTraceSpanExporter()
+#span_processor = BatchSpanProcessor(cloud_trace_exporter)
+#tracer_provider.add_span_processor(span_processor)
 
 # OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
 # Authentifizierung erfolgt automatisch in Cloud Run
-#otlp_exporter = OTLPSpanExporter(endpoint="https://otel.googleapis.com:443", insecure=False) 
-#span_processor = BatchSpanProcessor(otlp_exporter)
-#tracer_provider.add_span_processor(span_processor)
+otlp_exporter = OTLPSpanExporter()#endpoint="https://otel.googleapis.com:443", insecure=False) 
+span_processor = BatchSpanProcessor(otlp_exporter)
+tracer_provider.add_span_processor(span_processor)
 
 # Setze den Tracer Provider global
 trace.set_tracer_provider(tracer_provider)

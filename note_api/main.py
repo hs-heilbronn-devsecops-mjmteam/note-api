@@ -65,11 +65,11 @@ def create_note(request: CreateNoteRequest,
 ########################################################
 #For Exercise 4:
 # Configuration of the trace provider
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+#from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 
-from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+#from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -82,7 +82,7 @@ import os
 
 #Konfiguriere den TracerProvider und Exporter
 tracer_provider = TracerProvider()
-cloud_trace_exporter = CloudTraceSpanExporter()
+#cloud_trace_exporter = CloudTraceSpanExporter()
 
 # OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
 # Authentifizierung erfolgt automatisch in Cloud Run
@@ -91,8 +91,8 @@ span_processor = BatchSpanProcessor(otlp_exporter)
 tracer_provider.add_span_processor(span_processor)
 
 #Füge den BatchSpanProcessor hinzu
-span_processor = BatchSpanProcessor(cloud_trace_exporter)
-tracer_provider.add_span_processor(span_processor)
+#span_processor = BatchSpanProcessor(cloud_trace_exporter)
+#tracer_provider.add_span_processor(span_processor)
 
 # Setze den Tracer Provider global
 trace.set_tracer_provider(tracer_provider)

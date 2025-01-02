@@ -2,6 +2,9 @@
 from uuid import uuid4
 from typing import List, Optional
 from os import getenv
+import os
+import time
+import random
 from typing_extensions import Annotated
 
 from fastapi import Depends, FastAPI
@@ -65,22 +68,27 @@ def create_note(request: CreateNoteRequest,
 ########################################################
 #For Exercise 4:
 # Configuration of the trace provider
-#from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-"""
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-import os
+from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+
 
 #Konfiguriere den TracerProvider und Exporter
 tracer_provider = TracerProvider()
 
+
+cloud_trace_exporter = CloudTraceSpanExporter()
+span_processor = BatchSpanProcessor(cloud_trace_exporter)
+tracer_provider.add_span_processor(span_processor)
+
 # OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
 # Authentifizierung erfolgt automatisch in Cloud Run
-otlp_exporter = OTLPSpanExporter(endpoint="https://otel.googleapis.com:443")  
-span_processor = BatchSpanProcessor(otlp_exporter)
-tracer_provider.add_span_processor(span_processor)
+#otlp_exporter = OTLPSpanExporter(endpoint="https://otel.googleapis.com:443", insecure=False) 
+#span_processor = BatchSpanProcessor(otlp_exporter)
+#tracer_provider.add_span_processor(span_processor)
 
 # Setze den Tracer Provider global
 trace.set_tracer_provider(tracer_provider)
@@ -89,12 +97,14 @@ trace.set_tracer_provider(tracer_provider)
 tracer = trace.get_tracer("my-application")
 
 #Instrumentiere die FastAPI-Anwendung
-#FastAPIInstrumentor.instrument_app(app)
-"""
+FastAPIInstrumentor.instrument_app(app)
+
 #Beispiel-Routen hinzufügen
 @app.get("/trace")
 async def trace_example():
-    #tracer = trace.get_tracer(__name__)
-    #with tracer.start_as_current_span("example-span"):
-        return {"message": "This request is traced!"}
-#######################################################
+    #tracer = trace.get_tracer("my-application")
+    with tracer.start_as_current_span("First span"):
+        time.sleep(random.random() ** 2)
+        with tracer.start_as_current_span("Second span"):
+            time.sleep(random.random() ** 2)
+            return {"message": "This request is traced!"}

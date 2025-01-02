@@ -2,16 +2,15 @@
 from uuid import uuid4
 from typing import List, Optional
 from os import getenv
-import os
-import time
-import random
+#import os
+#import time
+#import random
 from typing_extensions import Annotated
 
 from fastapi import Depends, FastAPI
 from starlette.responses import RedirectResponse
 from .backends import Backend, RedisBackend, MemoryBackend, GCSBackend
 from .model import Note, CreateNoteRequest
-import pytest
 
 app = FastAPI()
 
@@ -67,7 +66,6 @@ def create_note(request: CreateNoteRequest,
     backend.set(note_id, request)
     return note_id
 
-#pytest.skip("Skip because we are not in google cloud run")
 ########################################################
 #For Exercise 4:
 # Configuration of the trace provider
@@ -76,7 +74,7 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+#from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 
 
 #Konfiguriere den TracerProvider und Exporter
@@ -89,7 +87,7 @@ tracer_provider = TracerProvider()
 
 # OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
 # Authentifizierung erfolgt automatisch in Cloud Run
-otlp_exporter = OTLPSpanExporter()#endpoint="https://otel.googleapis.com:443", insecure=False) 
+otlp_exporter = OTLPSpanExporter(endpoint="https://otel.googleapis.com:443", insecure=False) 
 span_processor = BatchSpanProcessor(otlp_exporter)
 tracer_provider.add_span_processor(span_processor)
 # Setze den Tracer Provider global

@@ -1,11 +1,8 @@
 from note_api.model import CreateNoteRequest, Note
 from note_api.backends import MemoryBackend
 from note_api.main import create_note, get_note, get_notes
-import pytest
-
 
 def test_save_and_get_item():
-    #pytest.skip("skip for debugging")
     backend = MemoryBackend()
     id = create_note(CreateNoteRequest(
         title='Test Note',
@@ -15,7 +12,6 @@ def test_save_and_get_item():
 
 
 def test_save_and_get_items():
-    #pytest.skip("skip for debugging")
     backend = MemoryBackend()
     create_note(CreateNoteRequest(
         title='Test Note',

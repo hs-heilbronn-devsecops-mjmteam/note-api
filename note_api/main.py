@@ -92,7 +92,6 @@ tracer_provider = TracerProvider()
 otlp_exporter = OTLPSpanExporter()#endpoint="https://otel.googleapis.com:443", insecure=False) 
 span_processor = BatchSpanProcessor(otlp_exporter)
 tracer_provider.add_span_processor(span_processor)
-
 # Setze den Tracer Provider global
 trace.set_tracer_provider(tracer_provider)
 
@@ -107,7 +106,9 @@ FastAPIInstrumentor.instrument_app(app)
 async def trace_example():
     #tracer = trace.get_tracer("my-application")
     with tracer.start_as_current_span("First span"):
-        time.sleep(random.random() ** 2)
+        #time.sleep(random.random() ** 2)
+        print("test")
         with tracer.start_as_current_span("Second span"):
-            time.sleep(random.random() ** 2)
+            #time.sleep(random.random() ** 2)
+            print("test")
             return {"message": "This request is traced!"}

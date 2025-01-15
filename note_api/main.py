@@ -24,22 +24,22 @@ app = FastAPI()
 
 my_backend: Optional[Backend] = None
 
-#add unque id to traces
+#Add unque id to traces
 resource = Resource.create(attributes={
     SERVICE_INSTANCE_ID: f"worker-{os.getpid()}",
 })
 
-#configure tracer and provider
+#Configure tracer and provider
 tracer_provider = TracerProvider(resource=resource)
 cloud_trace_exporter = CloudTraceSpanExporter()
 
 span_processor = BatchSpanProcessor(cloud_trace_exporter)
 tracer_provider.add_span_processor(span_processor)
 
-# set tracer globally
+#Set tracer globally
 trace.set_tracer_provider(tracer_provider)
 
-# Setup tracer with a specific name
+#Setup tracer with a specific name
 tracer = trace.get_tracer("my-application")
 
 #Instrument the FastAPI-application
@@ -64,7 +64,7 @@ def get_backend() -> Backend:
 def redirect_to_notes() -> None:
     return RedirectResponse(url='/notes')
 
-#add spans to each key
+#Add spans to each key
 @app.get('/notes')
 def get_notes(backend: Annotated[Backend, Depends(get_backend)]) -> List[Note]:
     with tracer.start_as_current_span("add keys"):
@@ -101,7 +101,7 @@ def create_note(request: CreateNoteRequest,
 
 
 
-#Beispiel-Routen hinzufügen
+#Sample-Route for debugging
 @app.get("/trace")
 async def trace_example():
     #tracer = trace.get_tracer("my-application")

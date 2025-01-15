@@ -12,9 +12,38 @@ from starlette.responses import RedirectResponse
 from .backends import Backend, RedisBackend, MemoryBackend, GCSBackend
 from .model import Note, CreateNoteRequest
 
+from opentelemetry.sdk.resources import SERVICE_INSTANCE_ID, SERVICE_NAME, Resource
+
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+
 app = FastAPI()
 
 my_backend: Optional[Backend] = None
+
+#add unque id to traces
+resource = Resource.create(attributes={
+    SERVICE_INSTANCE_ID: f"worker-{os.getpid()}",
+})
+
+#configure tracer and provider
+tracer_provider = TracerProvider(resource=resource)
+cloud_trace_exporter = CloudTraceSpanExporter()
+
+span_processor = BatchSpanProcessor(cloud_trace_exporter)
+tracer_provider.add_span_processor(span_processor)
+
+# set tracer globally
+trace.set_tracer_provider(tracer_provider)
+
+# Setup tracer with a specific name
+tracer = trace.get_tracer("my-application")
+
+#Instrument the FastAPI-application
+FastAPIInstrumentor.instrument_app(app)
 
 
 def get_backend() -> Backend:
@@ -35,15 +64,17 @@ def get_backend() -> Backend:
 def redirect_to_notes() -> None:
     return RedirectResponse(url='/notes')
 
-
+#add spans to each key
 @app.get('/notes')
 def get_notes(backend: Annotated[Backend, Depends(get_backend)]) -> List[Note]:
-    keys = backend.keys()
+    with tracer.start_as_current_span("add keys"):
+        keys = backend.keys()
 
-    Notes = []
-    for key in keys:
-        Notes.append(backend.get(key))
-    return Notes
+        Notes = []
+        for key in keys:
+            with tracer.start_as_current_span("adding single key"):
+                Notes.append(backend.get(key))
+        return Notes
 
 
 @app.get('/notes/{note_id}')
@@ -65,39 +96,10 @@ def create_note(request: CreateNoteRequest,
     note_id = str(uuid4())
     backend.set(note_id, request)
     return note_id
-########################################################
-#For Exercise 4:
-# Configuration of the trace provider
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 
 
-#Konfiguriere den TracerProvider und Exporter
-tracer_provider = TracerProvider()
 
 
-cloud_trace_exporter = CloudTraceSpanExporter()
-span_processor = BatchSpanProcessor(cloud_trace_exporter)
-tracer_provider.add_span_processor(span_processor)
-
-# OTLP Exporter hinzufügen (für Google Cloud Operations oder andere OTLP-kompatible Plattformen)
-# Authentifizierung erfolgt automatisch in Cloud Run
-#otlp_exporter = OTLPSpanExporter(endpoint="https://otel.googleapis.com:443", insecure=False) 
-#span_processor = BatchSpanProcessor(otlp_exporter)
-#tracer_provider.add_span_processor(span_processor)
-
-# Setze den Tracer Provider global
-trace.set_tracer_provider(tracer_provider)
-
-# Erstelle einen Tracer mit einem spezifischen Namen
-tracer = trace.get_tracer("my-application")
-
-#Instrumentiere die FastAPI-Anwendung
-FastAPIInstrumentor.instrument_app(app)
 
 #Beispiel-Routen hinzufügen
 @app.get("/trace")
